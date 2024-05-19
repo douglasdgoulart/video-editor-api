@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/douglasdgoulart/video-editor-api/pkg/api"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
+	api.NewApi(":8080").Run()
 }
