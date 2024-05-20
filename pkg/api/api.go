@@ -12,13 +12,17 @@ import (
 	slogecho "github.com/samber/slog-echo"
 )
 
+type ApiInterface interface {
+	Run(ctx context.Context)
+}
+
 type Api struct {
 	e      *echo.Echo
 	port   string
 	logger *slog.Logger
 }
 
-func NewApi(port string, logger *slog.Logger) *Api {
+func NewApi(port string, logger *slog.Logger) ApiInterface {
 	e := echo.New()
 	e.Use(slogecho.New(logger))
 	registerHealthCheckRoute(e)
