@@ -27,4 +27,7 @@ go.work
 ## Binary Path
 bin/
 
+## TODO file
+TODO.md
+
 # End of https://www.toptal.com/developers/gitignore/api/go

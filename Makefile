@@ -7,6 +7,10 @@ JOB_CMD_DIR=cmd/job
 API_MAIN_FILE=$(API_CMD_DIR)/api.go
 JOB_MAIN_FILE=$(JOB_CMD_DIR)/job.go
 
+FFMPEG_VERSION=release
+FFMPEG_BUILD=amd64
+FFMPEG_URL=https://johnvansickle.com/ffmpeg/releases/ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz
+FFMPEG_DIR=bin/ffmpeg
 
 # first so "all" becomes default target
 all: clean build
@@ -48,5 +52,16 @@ test:
 lint:
 	@echo "Linting the code"
 	@golangci-lint run
+
+# Download and extract FFmpeg
+$(FFMPEG_DIR):
+	@echo "Downloading FFmpeg..."
+	@mkdir -p $(FFMPEG_DIR)
+	@curl -L $(FFMPEG_URL) -o ffmpeg.tar.xz
+	@tar -xvf ffmpeg.tar.xz -C $(FFMPEG_DIR) --strip-components=1
+	@rm ffmpeg.tar.xz
+
+# Ensure FFmpeg is available
+ffmpeg: $(FFMPEG_DIR)
 
 .PHONY: all build-api build-job build clean run-api run-job test lint
