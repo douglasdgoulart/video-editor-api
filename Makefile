@@ -13,7 +13,7 @@ FFMPEG_URL=https://johnvansickle.com/ffmpeg/releases/ffmpeg-$(FFMPEG_VERSION)-$(
 FFMPEG_DIR=bin/ffmpeg
 
 # first so "all" becomes default target
-all: clean build
+all: clean ffmpeg build
 
 # Build the API binary
 build-api:
@@ -57,9 +57,12 @@ lint:
 $(FFMPEG_DIR):
 	@echo "Downloading FFmpeg..."
 	@mkdir -p $(FFMPEG_DIR)
-	@curl -L $(FFMPEG_URL) -o ffmpeg.tar.xz
-	@tar -xvf ffmpeg.tar.xz -C $(FFMPEG_DIR) --strip-components=1
-	@rm ffmpeg.tar.xz
+	@curl -L $(FFMPEG_URL) -o ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz
+	@curl -L $(FFMPEG_URL).md5 -o ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz.md5
+	@echo "Verifying MD5 checksum..."
+	@md5sum --quiet -c ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz.md5
+	@tar -xf ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz -C $(FFMPEG_DIR) --strip-components=1
+	@rm ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz ffmpeg-$(FFMPEG_VERSION)-$(FFMPEG_BUILD)-static.tar.xz.md5
 
 # Ensure FFmpeg is available
 ffmpeg: $(FFMPEG_DIR)

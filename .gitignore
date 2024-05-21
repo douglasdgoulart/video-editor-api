@@ -30,4 +30,8 @@ bin/
 ## TODO file
 TODO.md
 
+## FFMPEG temp files
+ffmpeg.tar.xz
+ffmpeg.tar.xz.md5
+
 # End of https://www.toptal.com/developers/gitignore/api/go
