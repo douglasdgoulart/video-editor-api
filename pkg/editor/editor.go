@@ -41,7 +41,10 @@ func (f *FfmpegEditor) HandleRequest(ctx context.Context, req EditorRequest, don
 
 	select {
 	case <-ctx.Done():
-		cmd.Process.Kill()
+		err := cmd.Process.Kill()
+		if err != nil {
+			slog.Error("Failed to kill process", "error", err)
+		}
 		done("", fmt.Errorf("process killed"))
 		return
 	case err = <-result:
