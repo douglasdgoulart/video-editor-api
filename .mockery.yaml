@@ -1,0 +1,9 @@
+with-expecter: True
+dir: "internal/mocks"
+mockname: "{{ .InterfaceName | camelcase }}Mock"
+outpkg: "mocks"
+filename: "{{ .InterfaceName | snakecase }}_mock.go"
+all: True
+recursive: True
+packages:
+  github.com/douglasdgoulart/video-editor-api/pkg/event/emmiter:
