@@ -23,6 +23,54 @@ func (_m *KgoClientMock) EXPECT() *KgoClientMock_Expecter {
 	return &KgoClientMock_Expecter{mock: &_m.Mock}
 }
 
+// PollFetches provides a mock function with given fields: ctx
+func (_m *KgoClientMock) PollFetches(ctx context.Context) kgo.Fetches {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PollFetches")
+	}
+
+	var r0 kgo.Fetches
+	if rf, ok := ret.Get(0).(func(context.Context) kgo.Fetches); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(kgo.Fetches)
+		}
+	}
+
+	return r0
+}
+
+// KgoClientMock_PollFetches_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PollFetches'
+type KgoClientMock_PollFetches_Call struct {
+	*mock.Call
+}
+
+// PollFetches is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *KgoClientMock_Expecter) PollFetches(ctx interface{}) *KgoClientMock_PollFetches_Call {
+	return &KgoClientMock_PollFetches_Call{Call: _e.mock.On("PollFetches", ctx)}
+}
+
+func (_c *KgoClientMock_PollFetches_Call) Run(run func(ctx context.Context)) *KgoClientMock_PollFetches_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *KgoClientMock_PollFetches_Call) Return(_a0 kgo.Fetches) *KgoClientMock_PollFetches_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *KgoClientMock_PollFetches_Call) RunAndReturn(run func(context.Context) kgo.Fetches) *KgoClientMock_PollFetches_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ProduceSync provides a mock function with given fields: ctx, rs
 func (_m *KgoClientMock) ProduceSync(ctx context.Context, rs ...*kgo.Record) kgo.ProduceResults {
 	_va := make([]interface{}, len(rs))

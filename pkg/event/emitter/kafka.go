@@ -9,12 +9,8 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
-type KgoClient interface {
-	ProduceSync(ctx context.Context, rs ...*kgo.Record) kgo.ProduceResults
-}
-
 type KafkaEmitter struct {
-	cl    KgoClient
+	cl    event.KgoClient
 	topic string
 }
 

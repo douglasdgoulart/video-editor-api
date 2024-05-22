@@ -22,6 +22,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/twmb/franz-go/pkg/kfake v0.0.0-20240509060506-c77d58eb5693
 	github.com/twmb/franz-go/pkg/kmsg v1.7.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
