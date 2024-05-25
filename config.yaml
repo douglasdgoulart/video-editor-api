@@ -1,0 +1,12 @@
+kafka:
+  enabled: false
+  producer:
+    brokers:
+      - localhost:9092
+    topic: "event"
+  consumer:
+    brokers:
+      - localhost:9092
+    group_id: "video-editor-job-consumer"
+    topic: "event"
+    offset: "latest"
