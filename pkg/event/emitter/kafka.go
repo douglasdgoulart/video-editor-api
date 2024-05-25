@@ -1,4 +1,4 @@
-package emmiter
+package emitter
 
 import (
 	"context"
