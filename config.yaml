@@ -1,3 +1,6 @@
+api:
+  host: localhost
+  port: 8080
 kafka:
   enabled: false
   producer:

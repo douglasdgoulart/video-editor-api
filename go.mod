@@ -3,6 +3,7 @@ module github.com/douglasdgoulart/video-editor-api
 go 1.22.0
 
 require (
+	github.com/google/uuid v1.4.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/samber/slog-echo v1.14.1
 	github.com/stretchr/testify v1.9.0
@@ -30,9 +31,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/google/uuid v1.6.0
 	github.com/klauspost/compress v1.17.4 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

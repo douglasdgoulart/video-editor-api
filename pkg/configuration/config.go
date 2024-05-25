@@ -2,13 +2,22 @@ package configuration
 
 import (
 	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
 type Configuration struct {
-	Kafka KafkaConfig `mapstructure:"kafka"`
+	LogLevel string `mapstructure:"log_level"`
+	Logger   *slog.Logger
+	Api      ApiConfig   `mapstructure:"api"`
+	Kafka    KafkaConfig `mapstructure:"kafka"`
+}
+
+type ApiConfig struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
 }
 
 type KafkaConfig struct {
@@ -29,6 +38,31 @@ type KafkaConsumerConfig struct {
 	Offset  string   `mapstructure:"offset"`
 }
 
+func NewLogger(logLevel string) *slog.Logger {
+	var parsedlogLevel slog.Level
+	switch strings.ToUpper(logLevel) {
+	case "DEBUG":
+		parsedlogLevel = slog.LevelDebug
+	case "INFO":
+		parsedlogLevel = slog.LevelInfo
+	case "WARN":
+		parsedlogLevel = slog.LevelWarn
+	case "ERROR":
+		parsedlogLevel = slog.LevelError
+	default:
+		parsedlogLevel = slog.LevelInfo
+	}
+	opts := &slog.HandlerOptions{
+		Level: parsedlogLevel,
+	}
+
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	return logger
+}
+
 func NewConfiguration() *Configuration {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -36,6 +70,9 @@ func NewConfiguration() *Configuration {
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	logLevel := viper.GetString("log_level")
+	logger := NewLogger(logLevel)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -53,6 +90,8 @@ func NewConfiguration() *Configuration {
 		slog.Error("Unable to decode into struct", "error", err)
 		panic(err)
 	}
+
+	config.Logger = logger
 
 	slog.Debug("Configuration loaded", "config", config)
 
