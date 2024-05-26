@@ -4,6 +4,9 @@ api:
   port: :8080
 job:
   enabled: true
+ffmpeg:
+  ## Run `make ffmpeg` to get ffmpeg binary
+  path: ./bin/ffmpeg/ffmpeg
 kafka:
   enabled: true
   producer:

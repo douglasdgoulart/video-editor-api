@@ -2,9 +2,11 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,7 +18,7 @@ func TestApi_Run(t *testing.T) {
 		cfg := &configuration.Configuration{
 			Logger: slog.Default(),
 			Api: configuration.ApiConfig{
-				Port: ":8081",
+				Port: ":0",
 			},
 		}
 		api := NewApi(cfg)
@@ -24,7 +26,8 @@ func TestApi_Run(t *testing.T) {
 		go api.Run(context.Background())
 		time.Sleep(1 * time.Second)
 
-		resp, err := http.Get("http://localhost:8081/health")
+		port := api.(*Api).e.Listener.Addr().String()[strings.LastIndex(api.(*Api).e.Listener.Addr().String(), ":"):]
+		resp, err := http.Get(fmt.Sprintf("http://localhost%s/health", port))
 		if err != nil {
 			t.Fatalf("Failed to make GET request: %v", err)
 		}

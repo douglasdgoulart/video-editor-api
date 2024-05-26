@@ -11,14 +11,24 @@ import (
 type Configuration struct {
 	LogLevel string `mapstructure:"log_level"`
 	Logger   *slog.Logger
-	Api      ApiConfig   `mapstructure:"api"`
-	Kafka    KafkaConfig `mapstructure:"kafka"`
+	Api      ApiConfig    `mapstructure:"api"`
+	Kafka    KafkaConfig  `mapstructure:"kafka"`
+	Job      JobConfig    `mapstructure:"job"`
+	Ffmpeg   FfmpegConfig `mapstructure:"ffmpeg"`
 }
 
 type ApiConfig struct {
 	Enabled bool   `mapstructure:"enabled"`
 	Host    string `mapstructure:"host"`
 	Port    string `mapstructure:"port"`
+}
+
+type JobConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
+type FfmpegConfig struct {
+	Path string `mapstructure:"path"`
 }
 
 type KafkaConfig struct {

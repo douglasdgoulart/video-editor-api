@@ -3,6 +3,7 @@ package receiver
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -106,7 +107,8 @@ func TestKafkaEventReceiver_Receive(t *testing.T) {
 			assert.NoError(t, err)
 
 			k := &KafkaEventReceiver{
-				cl: cl,
+				cl:     cl,
+				logger: slog.Default(),
 			}
 
 			go func() {

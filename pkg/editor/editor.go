@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 	"github.com/douglasdgoulart/video-editor-api/pkg/request"
 	"golang.org/x/exp/slog"
 )
@@ -19,8 +20,8 @@ type FfmpegEditor struct {
 	BinaryPath string
 }
 
-func NewFFMpegEditor(binaryPath string) EditorInterface {
-	return &FfmpegEditor{BinaryPath: binaryPath}
+func NewFFMpegEditor(cfg *configuration.Configuration) EditorInterface {
+	return &FfmpegEditor{BinaryPath: cfg.Ffmpeg.Path}
 }
 
 func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequest) (string, error) {

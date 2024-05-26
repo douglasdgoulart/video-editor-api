@@ -3,10 +3,12 @@ package editor
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math/rand/v2"
 	"os"
 	"testing"
 
+	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 	"github.com/douglasdgoulart/video-editor-api/pkg/request"
 )
 
@@ -14,7 +16,13 @@ var ffmpegLocation = "../../bin/ffmpeg/ffmpeg"
 
 func TestFfmpegEditor_buildCommand(t *testing.T) {
 	t.Run("buildCommand should return a valid command", func(t *testing.T) {
-		editor := NewFFMpegEditor(ffmpegLocation)
+		cfg := &configuration.Configuration{
+			Logger: slog.Default(),
+			Ffmpeg: configuration.FfmpegConfig{
+				Path: ffmpegLocation,
+			},
+		}
+		editor := NewFFMpegEditor(cfg)
 
 		req := request.EditorRequest{
 			Input: request.Input{
@@ -53,7 +61,13 @@ func TestFfmpegEditor_buildCommand(t *testing.T) {
 
 func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 	t.Run("extractThumbnail should return a valid command", func(t *testing.T) {
-		editor := NewFFMpegEditor(ffmpegLocation)
+		cfg := &configuration.Configuration{
+			Logger: slog.Default(),
+			Ffmpeg: configuration.FfmpegConfig{
+				Path: ffmpegLocation,
+			},
+		}
+		editor := NewFFMpegEditor(cfg)
 		outputFile := fmt.Sprintf("/tmp/thumbnail_%d.jpg", rand.Int())
 
 		filters := map[string]string{

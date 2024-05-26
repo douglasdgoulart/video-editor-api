@@ -11,22 +11,26 @@ import (
 )
 
 type KafkaEventReceiver struct {
-	cl event.KgoClient
+	cl     event.KgoClient
+	logger *slog.Logger
 }
 
-func NewKafkaEventReceiver(cfg configuration.KafkaConsumerConfig) EventReceiver {
-	getKgoOffset(cfg)
+func NewKafkaEventReceiver(cfg *configuration.Configuration) EventReceiver {
+	kafkaConsumerConfig := cfg.Kafka.KafkaConsumerConfig
+	logger := cfg.Logger.WithGroup("kafka-event-receiver")
+	getKgoOffset(kafkaConsumerConfig)
 
 	cl, err := kgo.NewClient(
-		kgo.SeedBrokers(cfg.Brokers...),
-		kgo.ConsumerGroup(cfg.GroupID),
-		kgo.ConsumeTopics(cfg.Topic),
+		kgo.SeedBrokers(kafkaConsumerConfig.Brokers...),
+		kgo.ConsumerGroup(kafkaConsumerConfig.GroupID),
+		kgo.ConsumeTopics(kafkaConsumerConfig.Topic),
 	)
 	if err != nil {
 		panic(err)
 	}
 	return &KafkaEventReceiver{
-		cl: cl,
+		cl:     cl,
+		logger: logger,
 	}
 }
 
@@ -51,21 +55,21 @@ func (k *KafkaEventReceiver) Receive(ctx context.Context, handle func(event *eve
 				record := iter.Next()
 
 				if err := json.Unmarshal(record.Value, &e); err != nil {
-					slog.Error("error unmarshalling event", "error", err, "event", string(record.Value))
+					k.logger.Error("error unmarshalling event", "error", err, "event", string(record.Value))
 					continue
 				}
 
 				var processErr error
 				for retryCount := range 5 {
 					if processErr = handle(&e); processErr != nil {
-						slog.Error("error handling event", "error", processErr, "retryCount", retryCount)
+						k.logger.Error("error handling event", "error", processErr, "retryCount", retryCount)
 						continue
 					}
 					break
 				}
 
 				if processErr != nil {
-					slog.Error("error handling event", "error", processErr)
+					k.logger.Error("error handling event", "error", processErr)
 				}
 			}
 		}
