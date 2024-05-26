@@ -58,17 +58,10 @@ func (k *KafkaEventReceiver) Receive(ctx context.Context, handle func(event *eve
 					k.logger.Error("error unmarshalling event", "error", err, "event", string(record.Value))
 					continue
 				}
+				k.logger.Debug("received event", "event", e)
 
 				var processErr error
-				for retryCount := range 5 {
-					if processErr = handle(&e); processErr != nil {
-						k.logger.Error("error handling event", "error", processErr, "retryCount", retryCount)
-						continue
-					}
-					break
-				}
-
-				if processErr != nil {
+				if processErr = handle(&e); processErr != nil {
 					k.logger.Error("error handling event", "error", processErr)
 				}
 			}

@@ -25,6 +25,7 @@ type ApiConfig struct {
 
 type JobConfig struct {
 	Enabled bool `mapstructure:"enabled"`
+	Workers int  `mapstructure:"workers"`
 }
 
 type FfmpegConfig struct {

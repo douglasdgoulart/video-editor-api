@@ -1,9 +1,11 @@
+log_level: debug
 api:
   enabled: true
   host: localhost
   port: :8080
 job:
   enabled: true
+  workers: 1
 ffmpeg:
   ## Run `make ffmpeg` to get ffmpeg binary
   path: ./bin/ffmpeg/ffmpeg

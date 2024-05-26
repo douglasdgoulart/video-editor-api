@@ -96,4 +96,44 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 			t.Fatalf("Expected output file '%s' to exist", outputFile)
 		}
 	})
+
+	t.Run("extractThumbnail should return a valid command with filters", func(t *testing.T) {
+		cfg := &configuration.Configuration{
+			Logger: slog.Default(),
+			Ffmpeg: configuration.FfmpegConfig{
+				Path: ffmpegLocation,
+			},
+		}
+		editor := NewFFMpegEditor(cfg)
+		outputFile := fmt.Sprintf("/tmp/thumbnail_%d.jpg", rand.Int())
+
+		filters := map[string]string{
+			"scale": "-1:720",
+			"hflip": "",
+			"vflip": "",
+			// "drawtext": "text='Stack Overflow':fontcolor=black:fontsize=60:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2",
+		}
+
+		req := request.EditorRequest{
+			Input: request.Input{
+				UploadedFilePath: "/home/douglas/repos/video-editor-api/internal/testdata/testsrc.mp4",
+			},
+			Output: request.Output{
+				WebhookURL:  "https://webhook-test.com/22eb5ac94c154fe12b2816d2e400122d",
+				FilePattern: outputFile,
+			},
+			StartTime: "00:00:05.0",
+			Filters:   filters,
+			Frames:    "1",
+		}
+
+		_, err := editor.HandleRequest(context.Background(), req)
+		if err != nil {
+			t.Fatalf("Failed to extract thumbnail: %v", err)
+		}
+
+		if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+			t.Fatalf("Expected output file '%s' to exist", outputFile)
+		}
+	})
 }

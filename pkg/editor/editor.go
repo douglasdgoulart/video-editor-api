@@ -3,13 +3,14 @@ package editor
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 	"github.com/douglasdgoulart/video-editor-api/pkg/request"
-	"golang.org/x/exp/slog"
+	"github.com/google/uuid"
 )
 
 type EditorInterface interface {
@@ -18,10 +19,15 @@ type EditorInterface interface {
 
 type FfmpegEditor struct {
 	BinaryPath string
+	logger     *slog.Logger
 }
 
 func NewFFMpegEditor(cfg *configuration.Configuration) EditorInterface {
-	return &FfmpegEditor{BinaryPath: cfg.Ffmpeg.Path}
+	return &FfmpegEditor{
+		BinaryPath: cfg.Ffmpeg.Path,
+		logger:     cfg.Logger.WithGroup("ffmpeg_editor"),
+	}
+
 }
 
 func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequest) (string, error) {
@@ -36,18 +42,18 @@ func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequ
 	result := make(chan error)
 
 	go func(resultChannel chan<- error) {
-		slog.Info("Running command", "command", strings.Join(cmd.Args, " "))
+		f.logger.Info("Running command", "command", strings.Join(cmd.Args, " "))
 		err := cmd.Run()
-		slog.Info("Command finished", "error", err)
+		f.logger.Info("Command finished", "error", err)
 		resultChannel <- err
 	}(result)
 
-	slog.Info("Waiting for command to finish")
+	f.logger.Info("Waiting for command to finish")
 	select {
 	case <-ctx.Done():
 		err := cmd.Process.Kill()
 		if err != nil {
-			slog.Error("Failed to kill process", "error", err)
+			f.logger.Error("Failed to kill process", "error", err)
 		}
 		return "", fmt.Errorf("process killed")
 	case err = <-result:
@@ -55,7 +61,7 @@ func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequ
 			return "", err
 		}
 	}
-	slog.Info("Command finished successfully")
+	f.logger.Info("Command finished successfully")
 
 	return req.Output.FilePattern, nil
 }
@@ -63,23 +69,21 @@ func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequ
 func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error) {
 	var inputFilePath string
 
-	// Determine input file path
 	if req.Input.FileURL != "" {
-		inputFilePath = req.Input.FileURL // Use URL directly
+		inputFilePath = req.Input.FileURL
 	} else if req.Input.UploadedFilePath != "" {
 		inputFilePath = req.Input.UploadedFilePath
 	} else {
 		return nil, fmt.Errorf("no valid input file provided")
 	}
 
-	// Build the FFmpeg command
 	outputFilePattern := req.Output.FilePattern
+	inputExtention := strings.ToLower(inputFilePath[strings.LastIndex(inputFilePath, ".")+1:])
 	if outputFilePattern == "" {
-		outputFilePattern = "output.jpg"
+		outputFilePattern = fmt.Sprintf("%s/%s.%s", os.TempDir(), uuid.New().String(), inputExtention)
 	}
 
-	// Construct the FFmpeg command arguments
-	args := []string{"-y"} // Overwrite output files without asking
+	args := []string{"-y"}
 
 	if req.StartTime != "" {
 		args = append(args, "-ss", req.StartTime)
@@ -91,6 +95,11 @@ func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error
 		var filterStrings []string
 
 		for name, options := range req.Filters {
+			if options == "" {
+				filterStrings = append(filterStrings, name)
+				continue
+			}
+
 			filterString := fmt.Sprintf("%s=%s", name, options)
 			filterStrings = append(filterStrings, filterString)
 		}
@@ -111,6 +120,6 @@ func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error
 
 	cmd := exec.Command(f.BinaryPath, args...)
 
-	slog.Info("Running command", "command", strings.Join(cmd.Args, " "))
+	f.logger.Info("Running command", "command", strings.Join(cmd.Args, " "))
 	return cmd, nil
 }
