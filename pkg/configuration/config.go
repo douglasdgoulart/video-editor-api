@@ -16,8 +16,9 @@ type Configuration struct {
 }
 
 type ApiConfig struct {
-	Host string `mapstructure:"host"`
-	Port string `mapstructure:"port"`
+	Enabled bool   `mapstructure:"enabled"`
+	Host    string `mapstructure:"host"`
+	Port    string `mapstructure:"port"`
 }
 
 type KafkaConfig struct {

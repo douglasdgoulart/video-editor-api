@@ -1,11 +1,8 @@
 # Variables
-API_BINARY_NAME=api
-JOB_BINARY_NAME=job
+BINARY_NAME=app
 BUILD_DIR=bin
-API_CMD_DIR=cmd/api
-JOB_CMD_DIR=cmd/job
-API_MAIN_FILE=$(API_CMD_DIR)/api.go
-JOB_MAIN_FILE=$(JOB_CMD_DIR)/job.go
+CMD_DIR=cmd/app
+MAIN_FILE=$(CMD_DIR)/app.go
 
 FFMPEG_VERSION=release
 FFMPEG_BUILD=amd64
@@ -15,33 +12,20 @@ FFMPEG_DIR=bin/ffmpeg
 # first so "all" becomes default target
 all: clean ffmpeg build
 
-# Build the API binary
-build-api:
-	@echo "Building the API binary"
-	@go build -o $(BUILD_DIR)/$(API_BINARY_NAME) $(API_MAIN_FILE)
-
-# Build the Job binary
-build-job:
-	@echo "Building the Job binary"
-	@go build -o $(BUILD_DIR)/$(JOB_BINARY_NAME) $(JOB_MAIN_FILE)
-
-# Build both binaries
-build: build-api build-job
+# Build the binary
+build:
+	@echo "Building the binary"
+	@go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
 
 # Clean the build directory
 clean:
 	@echo "Cleaning the build directory"
 	@rm -rf $(BUILD_DIR)/*
 
-# Run the API application
-run-api: build-api
-	@echo "Running the API application"
-	@./$(BUILD_DIR)/$(API_BINARY_NAME)
-
-# Run the Job application
-run-job: build-job
-	@echo "Running the Job application"
-	@./$(BUILD_DIR)/$(JOB_BINARY_NAME)
+# Run the application
+run: build
+	@echo "Running the application"
+	@./$(BUILD_DIR)/$(BINARY_NAME)
 
 # Run tests
 test:
@@ -73,4 +57,4 @@ $(FFMPEG_DIR):
 # Ensure FFmpeg is available
 ffmpeg: $(FFMPEG_DIR)
 
-.PHONY: all build-api build-job build clean run-api run-job test lint
+.PHONY: all build clean run test lint
