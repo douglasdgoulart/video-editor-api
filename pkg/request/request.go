@@ -6,13 +6,13 @@ type Input struct {
 }
 
 type Output struct {
-	FilePattern string `json:"file_pattern,omitempty"`
+	FilePattern string `json:"file_pattern,omitempty" required:"true"`
 	WebhookURL  string `json:"webhook_url,omitempty"`
 }
 
 type EditorRequest struct {
 	Input        Input             `json:"input,omitempty"`
-	Output       Output            `json:"output"`
+	Output       Output            `json:"output" required:"true"`
 	Codec        string            `json:"codec,omitempty"`
 	Bitrate      string            `json:"bitrate,omitempty"`
 	Resolution   string            `json:"resolution,omitempty"`

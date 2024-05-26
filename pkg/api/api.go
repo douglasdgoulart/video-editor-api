@@ -17,6 +17,7 @@ import (
 	"github.com/douglasdgoulart/video-editor-api/pkg/event"
 	"github.com/douglasdgoulart/video-editor-api/pkg/event/emitter"
 	"github.com/douglasdgoulart/video-editor-api/pkg/request"
+	"github.com/douglasdgoulart/video-editor-api/pkg/validator"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	slogecho "github.com/samber/slog-echo"
@@ -70,6 +71,12 @@ func (a *Api) registerProcessRoute() {
 		if err != nil {
 			a.logger.Error("Failed to decode request", "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+		}
+
+		err = validator.ValidateRequiredFields(request)
+		if err != nil {
+			a.logger.Error("Failed to validate request", "error", err)
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
 
 		file, err := c.FormFile("file")
