@@ -17,7 +17,7 @@ func validateRequiredFields(v interface{}, parentPath string) error {
 	}
 
 	typ := val.Type()
-	for i := 0; i < val.NumField(); i++ {
+	for i := range val.NumField() {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 		jsonTag := getJSONTag(fieldType)

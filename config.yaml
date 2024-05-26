@@ -10,7 +10,7 @@ ffmpeg:
   ## Run `make ffmpeg` to get ffmpeg binary
   path: ./bin/ffmpeg/ffmpeg
 kafka:
-  enabled: true
+  enabled: false
   producer:
     brokers:
       - localhost:9092

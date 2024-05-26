@@ -5,16 +5,18 @@ import (
 	"os"
 	"strings"
 
+	"github.com/douglasdgoulart/video-editor-api/pkg/event"
 	"github.com/spf13/viper"
 )
 
 type Configuration struct {
-	LogLevel string `mapstructure:"log_level"`
-	Logger   *slog.Logger
-	Api      ApiConfig    `mapstructure:"api"`
-	Kafka    KafkaConfig  `mapstructure:"kafka"`
-	Job      JobConfig    `mapstructure:"job"`
-	Ffmpeg   FfmpegConfig `mapstructure:"ffmpeg"`
+	LogLevel      string `mapstructure:"log_level"`
+	Logger        *slog.Logger
+	InternalQueue chan event.Event
+	Api           ApiConfig    `mapstructure:"api"`
+	Kafka         KafkaConfig  `mapstructure:"kafka"`
+	Job           JobConfig    `mapstructure:"job"`
+	Ffmpeg        FfmpegConfig `mapstructure:"ffmpeg"`
 }
 
 type ApiConfig struct {
@@ -104,6 +106,7 @@ func NewConfiguration() *Configuration {
 	}
 
 	config.Logger = logger
+	config.InternalQueue = make(chan event.Event)
 
 	slog.Debug("Configuration loaded", "config", config)
 

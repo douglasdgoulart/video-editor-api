@@ -41,6 +41,8 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 	var eventEmitter emitter.EventEmitter
 	if cfg.Kafka.Enabled {
 		eventEmitter = emitter.NewKafkaEmitter(&cfg.Kafka.KafkaProducerConfig)
+	} else {
+		eventEmitter = emitter.NewInternalQueueEmitter(cfg)
 	}
 
 	logger := cfg.Logger.WithGroup("api")

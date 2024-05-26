@@ -25,7 +25,13 @@ type Job struct {
 }
 
 func NewJob(cfg *configuration.Configuration, jobId int) JobInterface {
-	eventReceiver := receiver.NewKafkaEventReceiver(cfg)
+	var eventReceiver receiver.EventReceiver
+	if cfg.Kafka.Enabled {
+		eventReceiver = receiver.NewKafkaEventReceiver(cfg)
+	} else {
+		eventReceiver = receiver.NewInternalQueueEventReceiver(cfg)
+	}
+
 	editor := editor.NewFFMpegEditor(cfg)
 	logger := cfg.Logger.WithGroup(fmt.Sprintf("job_%d", jobId))
 	return &Job{
