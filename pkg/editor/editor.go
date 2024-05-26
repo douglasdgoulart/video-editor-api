@@ -7,11 +7,12 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/douglasdgoulart/video-editor-api/pkg/request"
 	"golang.org/x/exp/slog"
 )
 
 type EditorInterface interface {
-	HandleRequest(ctx context.Context, req EditorRequest, callback func(outputFile string, err error))
+	HandleRequest(ctx context.Context, req request.EditorRequest) (string, error)
 }
 
 type FfmpegEditor struct {
@@ -22,11 +23,10 @@ func NewFFMpegEditor(binaryPath string) EditorInterface {
 	return &FfmpegEditor{BinaryPath: binaryPath}
 }
 
-func (f *FfmpegEditor) HandleRequest(ctx context.Context, req EditorRequest, done func(outputFile string, err error)) {
+func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequest) (string, error) {
 	cmd, err := f.buildCommand(req)
 	if err != nil {
-		done("", err)
-		return
+		return "", err
 	}
 
 	cmd.Stdout = os.Stdout
@@ -34,30 +34,32 @@ func (f *FfmpegEditor) HandleRequest(ctx context.Context, req EditorRequest, don
 
 	result := make(chan error)
 
-	go func(resultChannel chan error) {
-		err = cmd.Run()
+	go func(resultChannel chan<- error) {
+		slog.Info("Running command", "command", strings.Join(cmd.Args, " "))
+		err := cmd.Run()
+		slog.Info("Command finished", "error", err)
 		resultChannel <- err
 	}(result)
 
+	slog.Info("Waiting for command to finish")
 	select {
 	case <-ctx.Done():
 		err := cmd.Process.Kill()
 		if err != nil {
 			slog.Error("Failed to kill process", "error", err)
 		}
-		done("", fmt.Errorf("process killed"))
-		return
+		return "", fmt.Errorf("process killed")
 	case err = <-result:
 		if err != nil {
-			done("", err)
-			return
+			return "", err
 		}
 	}
+	slog.Info("Command finished successfully")
 
-	done("output_1.mp4", nil)
+	return req.Output.FilePattern, nil
 }
 
-func (f *FfmpegEditor) buildCommand(req EditorRequest) (*exec.Cmd, error) {
+func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error) {
 	var inputFilePath string
 
 	// Determine input file path

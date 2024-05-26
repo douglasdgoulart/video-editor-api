@@ -17,6 +17,7 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+*.tmp
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
@@ -26,6 +27,7 @@ go.work
 
 ## Binary Path
 bin/
+tmp/
 
 ## TODO file
 TODO.md

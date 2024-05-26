@@ -1,8 +1,11 @@
 api:
+  enabled: true
   host: localhost
-  port: 8080
+  port: :8080
+job:
+  enabled: true
 kafka:
-  enabled: false
+  enabled: true
   producer:
     brokers:
       - localhost:9092

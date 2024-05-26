@@ -7,11 +7,19 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 )
 
 func TestApi_Run(t *testing.T) {
 	t.Run("Given nothing, when the api is running it should return OK at health route", func(t *testing.T) {
-		api := NewApi(":8081", slog.Default())
+		cfg := &configuration.Configuration{
+			Logger: slog.Default(),
+			Api: configuration.ApiConfig{
+				Port: ":8081",
+			},
+		}
+		api := NewApi(cfg)
 
 		go api.Run(context.Background())
 		time.Sleep(1 * time.Second)

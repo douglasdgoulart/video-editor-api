@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"github.com/douglasdgoulart/video-editor-api/pkg/editor"
+	"github.com/douglasdgoulart/video-editor-api/pkg/request"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
@@ -13,6 +13,6 @@ type KgoClient interface {
 }
 
 type Event struct {
-	Id            string               `json:"id"`
-	EditorRequest editor.EditorRequest `json:"editor_request"`
+	Id            string                `json:"id"`
+	EditorRequest request.EditorRequest `json:"editor_request"`
 }

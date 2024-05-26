@@ -1,4 +1,4 @@
-package editor
+package request
 
 type Input struct {
 	FileURL          string `json:"file_url,omitempty"`
@@ -11,7 +11,7 @@ type Output struct {
 }
 
 type EditorRequest struct {
-	Input        Input             `json:"input"`
+	Input        Input             `json:"input,omitempty"`
 	Output       Output            `json:"output"`
 	Codec        string            `json:"codec,omitempty"`
 	Bitrate      string            `json:"bitrate,omitempty"`

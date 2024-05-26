@@ -46,7 +46,13 @@ run-job: build-job
 # Run tests
 test:
 	@echo "Running tests"
-	@go test ./...
+	@go test -v -p 1 ./...
+
+coverage-report:
+	@echo "Running tests with coverage report"
+	@go test -v -p 1 -coverprofile=coverage.out.tmp  ./... 
+	@cat coverage.out.tmp | grep -v "_mock.go" > coverage.out
+	@go tool cover -html=coverage.out
 
 # Run linting (requires golangci-lint installed)
 lint:

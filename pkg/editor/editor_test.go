@@ -6,6 +6,8 @@ import (
 	"math/rand/v2"
 	"os"
 	"testing"
+
+	"github.com/douglasdgoulart/video-editor-api/pkg/request"
 )
 
 var ffmpegLocation = "../../bin/ffmpeg/ffmpeg"
@@ -14,11 +16,11 @@ func TestFfmpegEditor_buildCommand(t *testing.T) {
 	t.Run("buildCommand should return a valid command", func(t *testing.T) {
 		editor := NewFFMpegEditor(ffmpegLocation)
 
-		req := EditorRequest{
-			Input: Input{
+		req := request.EditorRequest{
+			Input: request.Input{
 				UploadedFilePath: "../../input.mp4",
 			},
-			Output: Output{
+			Output: request.Output{
 				FilePattern: "thumbnail.jpg",
 			},
 			ExtraOptions: "-vf \"thumbnail,scale=640:480\" -frames:v 1",
@@ -58,11 +60,11 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 			"scale": "-1:100",
 		}
 
-		req := EditorRequest{
-			Input: Input{
+		req := request.EditorRequest{
+			Input: request.Input{
 				UploadedFilePath: "../../internal/testdata/testsrc.mp4",
 			},
-			Output: Output{
+			Output: request.Output{
 				FilePattern: outputFile,
 			},
 			StartTime:    "00:00:05.0",
@@ -71,11 +73,10 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 			ExtraOptions: "",
 		}
 
-		editor.HandleRequest(context.Background(), req, func(_ string, err error) {
-			if err != nil {
-				t.Fatalf("Failed to extract thumbnail: %v", err)
-			}
-		})
+		_, err := editor.HandleRequest(context.Background(), req)
+		if err != nil {
+			t.Fatalf("Failed to extract thumbnail: %v", err)
+		}
 
 		if _, err := os.Stat(outputFile); os.IsNotExist(err) {
 			t.Fatalf("Expected output file '%s' to exist", outputFile)

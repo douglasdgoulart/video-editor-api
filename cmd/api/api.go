@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"log/slog"
-	"os"
 
 	"github.com/douglasdgoulart/video-editor-api/pkg/api"
+	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	ctx := context.Background()
-	api.NewApi(":8080", logger).Run(ctx)
+	cfg := configuration.NewConfiguration()
+	api.NewApi(cfg).Run(ctx)
 }
