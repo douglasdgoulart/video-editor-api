@@ -55,8 +55,13 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 
 	api.registerHealthCheckRoute()
 	api.registerProcessRoute()
+	api.registerStaticFiles()
 
 	return api
+}
+
+func (a *Api) registerStaticFiles() {
+	a.e.Static("/files", os.TempDir())
 }
 
 func (a *Api) registerHealthCheckRoute() {

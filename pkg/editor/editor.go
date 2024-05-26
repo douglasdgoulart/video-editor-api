@@ -6,7 +6,10 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
+
+	"regexp"
 
 	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 	"github.com/douglasdgoulart/video-editor-api/pkg/request"
@@ -14,7 +17,7 @@ import (
 )
 
 type EditorInterface interface {
-	HandleRequest(ctx context.Context, req request.EditorRequest) (string, error)
+	HandleRequest(ctx context.Context, req request.EditorRequest) ([]string, error)
 }
 
 type FfmpegEditor struct {
@@ -30,10 +33,14 @@ func NewFFMpegEditor(cfg *configuration.Configuration) EditorInterface {
 
 }
 
-func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequest) (string, error) {
+func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequest) (output []string, err error) {
+	outputPattern := getOutputPath(req.Output.FilePattern)
+	outputPath := filepath.Dir(outputPattern)
+	req.Output.FilePattern = outputPattern
+
 	cmd, err := f.buildCommand(req)
 	if err != nil {
-		return "", err
+		return
 	}
 
 	cmd.Stdout = os.Stdout
@@ -51,19 +58,52 @@ func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequ
 	f.logger.Info("Waiting for command to finish")
 	select {
 	case <-ctx.Done():
-		err := cmd.Process.Kill()
+		err = cmd.Process.Kill()
 		if err != nil {
 			f.logger.Error("Failed to kill process", "error", err)
 		}
-		return "", fmt.Errorf("process killed")
+		err = fmt.Errorf("process killed")
+		return
 	case err = <-result:
 		if err != nil {
-			return "", err
+			return
 		}
 	}
 	f.logger.Info("Command finished successfully")
 
-	return req.Output.FilePattern, nil
+	output, err = getFilesInDirectory(outputPath)
+	return
+}
+
+func getFilesInDirectory(directory string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		files = append(files, path)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func getOutputPath(outputFilePattern string) string {
+	outputPattern := "output"
+	outputFileExtention := strings.ToLower(outputFilePattern[strings.LastIndex(outputFilePattern, ".")+1:])
+	placeholderRegex := regexp.MustCompile(`%[0-9]{2}d`)
+	if placeholderRegex.MatchString(outputFilePattern) {
+		outputPattern = placeholderRegex.FindString(outputFilePattern)
+	}
+
+	outputFilePattern = fmt.Sprintf("%s/%s/%s.%s", os.TempDir(), uuid.New().String(), outputPattern, outputFileExtention)
+	_ = os.MkdirAll(filepath.Dir(outputFilePattern), os.ModePerm)
+
+	return outputFilePattern
 }
 
 func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error) {
@@ -75,12 +115,6 @@ func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error
 		inputFilePath = req.Input.UploadedFilePath
 	} else {
 		return nil, fmt.Errorf("no valid input file provided")
-	}
-
-	outputFilePattern := req.Output.FilePattern
-	inputExtention := strings.ToLower(inputFilePath[strings.LastIndex(inputFilePath, ".")+1:])
-	if outputFilePattern == "" {
-		outputFilePattern = fmt.Sprintf("%s/%s.%s", os.TempDir(), uuid.New().String(), inputExtention)
 	}
 
 	args := []string{"-y"}
@@ -116,7 +150,7 @@ func (f *FfmpegEditor) buildCommand(req request.EditorRequest) (*exec.Cmd, error
 		args = append(args, extraArgs...)
 	}
 
-	args = append(args, outputFilePattern)
+	args = append(args, req.Output.FilePattern)
 
 	cmd := exec.Command(f.BinaryPath, args...)
 

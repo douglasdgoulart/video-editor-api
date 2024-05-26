@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 	"github.com/douglasdgoulart/video-editor-api/pkg/editor"
@@ -22,6 +23,8 @@ type Job struct {
 	eventReceiver receiver.EventReceiver
 	editor        editor.EditorInterface
 	logger        *slog.Logger
+	apiHost       string
+	apiPort       string
 }
 
 func NewJob(cfg *configuration.Configuration, jobId int) JobInterface {
@@ -38,6 +41,8 @@ func NewJob(cfg *configuration.Configuration, jobId int) JobInterface {
 		eventReceiver: eventReceiver,
 		editor:        editor,
 		logger:        logger,
+		apiHost:       cfg.Api.Host,
+		apiPort:       cfg.Api.Port,
 	}
 }
 
@@ -62,13 +67,30 @@ func (j *Job) handleEvent(ctx context.Context) func(event *event.Event) error {
 }
 
 type WebhookResponse struct {
-	Status       string `json:"status"`
-	Id           string `json:"id"`
-	FileLocation string `json:"file_location,omitempty"`
-	ErrorMsg     string `json:"error_msg,omitempty"`
+	Status        string   `json:"status"`
+	Id            string   `json:"id"`
+	FileLocations []string `json:"file_location,omitempty"`
+	ErrorMsg      string   `json:"error_msg,omitempty"`
 }
 
-func (j *Job) callWebhook(event *event.Event, outputFileLocation string, inputErr error) error {
+func getFileLocationURL(fileLocations []string, host string, port string) []string {
+	var urls []string
+	if port == "" {
+		port = ":80"
+	}
+	method := "http"
+	if host != "localhost" {
+		method = "https"
+	}
+	for _, fileLocation := range fileLocations {
+		fileLocation = strings.Replace(fileLocation, "/tmp/", "", 1)
+		urls = append(urls, fmt.Sprintf("%s://%s%s/files/%s", method, host, port, fileLocation))
+	}
+	return urls
+}
+
+func (j *Job) callWebhook(event *event.Event, outputFilesLocation []string, inputErr error) error {
+	outputFileLocationsURL := getFileLocationURL(outputFilesLocation, j.apiHost, j.apiPort)
 	if event.EditorRequest.Output.WebhookURL == "" {
 		return nil
 	}
@@ -81,10 +103,10 @@ func (j *Job) callWebhook(event *event.Event, outputFileLocation string, inputEr
 		errMsg = inputErr.Error()
 	}
 	payload := WebhookResponse{
-		Status:       status,
-		Id:           event.Id,
-		FileLocation: outputFileLocation,
-		ErrorMsg:     errMsg,
+		Status:        status,
+		Id:            event.Id,
+		FileLocations: outputFileLocationsURL,
+		ErrorMsg:      errMsg,
 	}
 
 	jsonData, err := json.Marshal(payload)

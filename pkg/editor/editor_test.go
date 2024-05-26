@@ -87,12 +87,12 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 			ExtraOptions: "",
 		}
 
-		_, err := editor.HandleRequest(context.Background(), req)
+		outputFiles, err := editor.HandleRequest(context.Background(), req)
 		if err != nil {
 			t.Fatalf("Failed to extract thumbnail: %v", err)
 		}
 
-		if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+		if _, err := os.Stat(outputFiles[0]); os.IsNotExist(err) {
 			t.Fatalf("Expected output file '%s' to exist", outputFile)
 		}
 	})
@@ -111,7 +111,6 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 			"scale": "-1:720",
 			"hflip": "",
 			"vflip": "",
-			// "drawtext": "text='Stack Overflow':fontcolor=black:fontsize=60:boxborderw=5:x=(w-text_w)/2:y=(h-text_h)/2",
 		}
 
 		req := request.EditorRequest{
@@ -127,12 +126,12 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 			Frames:    "1",
 		}
 
-		_, err := editor.HandleRequest(context.Background(), req)
+		outputFiles, err := editor.HandleRequest(context.Background(), req)
 		if err != nil {
 			t.Fatalf("Failed to extract thumbnail: %v", err)
 		}
 
-		if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+		if _, err := os.Stat(outputFiles[0]); os.IsNotExist(err) {
 			t.Fatalf("Expected output file '%s' to exist", outputFile)
 		}
 	})
