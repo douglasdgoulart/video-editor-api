@@ -26,6 +26,38 @@ services:
       - ./scripts/create_topic.sh:/usr/bin/create_topic.sh
     command: ["/bin/bash", "-c", "chmod +x /usr/bin/create_topic.sh && /etc/confluent/docker/run & sleep 30 && /usr/bin/create_topic.sh && tail -f /dev/null"]
 
+  api:
+    build: .
+    depends_on:
+      - kafka
+    network_mode: "host"
+    environment:
+      LOG_LEVEL: debug
+      OUTPUT_PATH: /mnt/app/output
+      INPUT_PATH: /mnt/app/input
+      API_ENABLED: true
+      JOB_ENABLED: false
+      KAFKA_ENABLED: true
+    volumes:
+      - app-volume:/mnt/app/
+
+  job:
+    build: .
+    depends_on:
+      - kafka
+    network_mode: "host"
+    deploy:
+      replicas: 3
+    environment:
+      LOG_LEVEL: debug
+      OUTPUT_PATH: /mnt/app/output
+      INPUT_PATH: /mnt/app/input
+      API_ENABLED: false
+      JOB_ENABLED: true
+      JOB_WORKERS: 1
+      KAFKA_ENABLED: true
+    volumes:
+      - app-volume:/mnt/app/
 
   kafdrop:
     image: obsidiandynamics/kafdrop:latest
@@ -39,4 +71,7 @@ services:
       KAFKA_BROKERCONNECT: kafka:29092
 
 networks: 
-  broker-kafka: 
+  broker-kafka:
+
+volumes:
+  app-volume:

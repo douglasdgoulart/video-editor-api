@@ -33,6 +33,7 @@ type Api struct {
 	logger     *slog.Logger
 	emitter    emitter.EventEmitter
 	outputPath string
+	inputPath  string
 }
 
 func NewApi(cfg *configuration.Configuration) ApiInterface {
@@ -53,6 +54,7 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 		logger:     logger,
 		emitter:    eventEmitter,
 		outputPath: cfg.OutputPath,
+		inputPath:  cfg.InputPath,
 	}
 
 	api.registerHealthCheckRoute()
@@ -93,7 +95,7 @@ func (a *Api) registerProcessRoute() {
 			a.logger.Error("Failed to get file from request", "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
-		fileLocation, err := downloadFile(file)
+		fileLocation, err := a.downloadFile(file)
 		if err != nil {
 			a.logger.Error("Failed to download file", "error", err)
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal server error"})
@@ -114,7 +116,7 @@ func (a *Api) registerProcessRoute() {
 	})
 }
 
-func downloadFile(f *multipart.FileHeader) (string, error) {
+func (a *Api) downloadFile(f *multipart.FileHeader) (string, error) {
 	src, err := f.Open()
 	if err != nil {
 		return "", err
@@ -122,7 +124,7 @@ func downloadFile(f *multipart.FileHeader) (string, error) {
 	defer src.Close()
 
 	fileExtention := f.Filename[strings.LastIndex(f.Filename, ".")+1:]
-	dst, err := os.Create(fmt.Sprintf("%s/%s.%s", os.TempDir(), uuid.New().String(), fileExtention))
+	dst, err := os.Create(fmt.Sprintf("%s/%s.%s", a.inputPath, uuid.New().String(), fileExtention))
 	if err != nil {
 		return "", err
 	}

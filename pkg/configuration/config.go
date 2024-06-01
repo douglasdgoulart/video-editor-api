@@ -14,6 +14,7 @@ type Configuration struct {
 	LogLevel      string `mapstructure:"log_level"`
 	Logger        *slog.Logger
 	OutputPath    string `mapstructure:"output_path"`
+	InputPath     string `mapstructure:"input_path"`
 	InternalQueue chan event.Event
 	Api           ApiConfig    `mapstructure:"api"`
 	Kafka         KafkaConfig  `mapstructure:"kafka"`
@@ -109,7 +110,24 @@ func NewConfiguration() *Configuration {
 
 	config.OutputPath, err = filepath.Abs(config.OutputPath)
 	if err != nil {
-		slog.Error("Error getting absolute path", "error", err)
+		slog.Error("Error getting absolute output path", "error", err)
+		panic(err)
+	}
+
+	err = os.MkdirAll(config.OutputPath, os.ModePerm)
+	if err != nil {
+		slog.Error("Error creating output path", "error", err)
+		panic(err)
+	}
+
+	config.InputPath, err = filepath.Abs(config.InputPath)
+	if err != nil {
+		slog.Error("Error getting absolute input path", "error", err)
+		panic(err)
+	}
+	err = os.MkdirAll(config.InputPath, os.ModePerm)
+	if err != nil {
+		slog.Error("Error creating input path", "error", err)
 		panic(err)
 	}
 

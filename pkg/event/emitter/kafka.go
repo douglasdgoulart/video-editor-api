@@ -34,6 +34,7 @@ func (k *KafkaEmitter) Send(ctx context.Context, event event.Event) error {
 	err = k.cl.ProduceSync(ctx, &kgo.Record{
 		Topic: k.topic,
 		Value: serializedEvent,
+		Key:   []byte(event.Id),
 	}).FirstErr()
 
 	return err
