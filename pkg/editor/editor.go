@@ -23,18 +23,20 @@ type EditorInterface interface {
 type FfmpegEditor struct {
 	BinaryPath string
 	logger     *slog.Logger
+	outputPath string
 }
 
 func NewFFMpegEditor(cfg *configuration.Configuration) EditorInterface {
 	return &FfmpegEditor{
 		BinaryPath: cfg.Ffmpeg.Path,
 		logger:     cfg.Logger.WithGroup("ffmpeg_editor"),
+		outputPath: cfg.OutputPath,
 	}
 
 }
 
 func (f *FfmpegEditor) HandleRequest(ctx context.Context, req request.EditorRequest) (output []string, err error) {
-	outputPattern := getOutputPath(req.Output.FilePattern)
+	outputPattern := f.getOutputPath(req.Output.FilePattern)
 	outputPath := filepath.Dir(outputPattern)
 	req.Output.FilePattern = outputPattern
 
@@ -92,7 +94,7 @@ func getFilesInDirectory(directory string) ([]string, error) {
 	return files, nil
 }
 
-func getOutputPath(outputFilePattern string) string {
+func (f *FfmpegEditor) getOutputPath(outputFilePattern string) string {
 	outputPattern := "output"
 	outputFileExtention := strings.ToLower(outputFilePattern[strings.LastIndex(outputFilePattern, ".")+1:])
 	placeholderRegex := regexp.MustCompile(`%[0-9]{2}d`)
@@ -100,7 +102,7 @@ func getOutputPath(outputFilePattern string) string {
 		outputPattern = placeholderRegex.FindString(outputFilePattern)
 	}
 
-	outputFilePattern = fmt.Sprintf("%s/%s/%s.%s", os.TempDir(), uuid.New().String(), outputPattern, outputFileExtention)
+	outputFilePattern = fmt.Sprintf("%s/%s/%s.%s", f.outputPath, uuid.New().String(), outputPattern, outputFileExtention)
 	_ = os.MkdirAll(filepath.Dir(outputFilePattern), os.ModePerm)
 
 	return outputFilePattern

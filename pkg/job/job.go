@@ -25,6 +25,7 @@ type Job struct {
 	logger        *slog.Logger
 	apiHost       string
 	apiPort       string
+	outputPath    string
 }
 
 func NewJob(cfg *configuration.Configuration, jobId int) JobInterface {
@@ -43,6 +44,7 @@ func NewJob(cfg *configuration.Configuration, jobId int) JobInterface {
 		logger:        logger,
 		apiHost:       cfg.Api.Host,
 		apiPort:       cfg.Api.Port,
+		outputPath:    cfg.OutputPath,
 	}
 }
 
@@ -73,7 +75,7 @@ type WebhookResponse struct {
 	ErrorMsg      string   `json:"error_msg,omitempty"`
 }
 
-func getFileLocationURL(fileLocations []string, host string, port string) []string {
+func (j *Job) getFileLocationURL(fileLocations []string, host string, port string) []string {
 	var urls []string
 	if port == "" {
 		port = ":80"
@@ -83,14 +85,14 @@ func getFileLocationURL(fileLocations []string, host string, port string) []stri
 		method = "https"
 	}
 	for _, fileLocation := range fileLocations {
-		fileLocation = strings.Replace(fileLocation, "/tmp/", "", 1)
+		fileLocation = strings.Replace(fileLocation, fmt.Sprintf("%s/", j.outputPath), "", 1)
 		urls = append(urls, fmt.Sprintf("%s://%s%s/files/%s", method, host, port, fileLocation))
 	}
 	return urls
 }
 
 func (j *Job) callWebhook(event *event.Event, outputFilesLocation []string, inputErr error) error {
-	outputFileLocationsURL := getFileLocationURL(outputFilesLocation, j.apiHost, j.apiPort)
+	outputFileLocationsURL := j.getFileLocationURL(outputFilesLocation, j.apiHost, j.apiPort)
 	if event.EditorRequest.Output.WebhookURL == "" {
 		return nil
 	}

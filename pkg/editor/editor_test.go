@@ -60,14 +60,16 @@ func TestFfmpegEditor_buildCommand(t *testing.T) {
 }
 
 func TestFfmpegEditor_extractThumbnail(t *testing.T) {
+	cfg := &configuration.Configuration{
+		Logger:     slog.Default(),
+		OutputPath: "/tmp",
+		Ffmpeg: configuration.FfmpegConfig{
+			Path: ffmpegLocation,
+		},
+	}
+	editor := NewFFMpegEditor(cfg)
 	t.Run("extractThumbnail should return a valid command", func(t *testing.T) {
-		cfg := &configuration.Configuration{
-			Logger: slog.Default(),
-			Ffmpeg: configuration.FfmpegConfig{
-				Path: ffmpegLocation,
-			},
-		}
-		editor := NewFFMpegEditor(cfg)
+
 		outputFile := fmt.Sprintf("/tmp/thumbnail_%d.jpg", rand.Int())
 
 		filters := map[string]string{
@@ -98,13 +100,6 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 	})
 
 	t.Run("extractThumbnail should return a valid command with filters", func(t *testing.T) {
-		cfg := &configuration.Configuration{
-			Logger: slog.Default(),
-			Ffmpeg: configuration.FfmpegConfig{
-				Path: ffmpegLocation,
-			},
-		}
-		editor := NewFFMpegEditor(cfg)
 		outputFile := fmt.Sprintf("/tmp/thumbnail_%d.jpg", rand.Int())
 
 		filters := map[string]string{

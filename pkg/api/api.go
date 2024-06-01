@@ -28,10 +28,11 @@ type ApiInterface interface {
 }
 
 type Api struct {
-	e       *echo.Echo
-	port    string
-	logger  *slog.Logger
-	emitter emitter.EventEmitter
+	e          *echo.Echo
+	port       string
+	logger     *slog.Logger
+	emitter    emitter.EventEmitter
+	outputPath string
 }
 
 func NewApi(cfg *configuration.Configuration) ApiInterface {
@@ -47,10 +48,11 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 
 	logger := cfg.Logger.WithGroup("api")
 	api := &Api{
-		e:       e,
-		port:    cfg.Api.Port,
-		logger:  logger,
-		emitter: eventEmitter,
+		e:          e,
+		port:       cfg.Api.Port,
+		logger:     logger,
+		emitter:    eventEmitter,
+		outputPath: cfg.OutputPath,
 	}
 
 	api.registerHealthCheckRoute()
@@ -61,7 +63,7 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 }
 
 func (a *Api) registerStaticFiles() {
-	a.e.Static("/files", os.TempDir())
+	a.e.Static("/files", a.outputPath)
 }
 
 func (a *Api) registerHealthCheckRoute() {
@@ -91,7 +93,7 @@ func (a *Api) registerProcessRoute() {
 			a.logger.Error("Failed to get file from request", "error", err)
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
 		}
-		fileLocation, err := donwloadFile(file)
+		fileLocation, err := downloadFile(file)
 		if err != nil {
 			a.logger.Error("Failed to download file", "error", err)
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal server error"})
@@ -112,7 +114,7 @@ func (a *Api) registerProcessRoute() {
 	})
 }
 
-func donwloadFile(f *multipart.FileHeader) (string, error) {
+func downloadFile(f *multipart.FileHeader) (string, error) {
 	src, err := f.Open()
 	if err != nil {
 		return "", err

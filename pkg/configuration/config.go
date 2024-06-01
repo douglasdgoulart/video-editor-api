@@ -3,6 +3,7 @@ package configuration
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/douglasdgoulart/video-editor-api/pkg/event"
@@ -12,6 +13,7 @@ import (
 type Configuration struct {
 	LogLevel      string `mapstructure:"log_level"`
 	Logger        *slog.Logger
+	OutputPath    string `mapstructure:"output_path"`
 	InternalQueue chan event.Event
 	Api           ApiConfig    `mapstructure:"api"`
 	Kafka         KafkaConfig  `mapstructure:"kafka"`
@@ -102,6 +104,12 @@ func NewConfiguration() *Configuration {
 	err := viper.Unmarshal(&config)
 	if err != nil {
 		slog.Error("Unable to decode into struct", "error", err)
+		panic(err)
+	}
+
+	config.OutputPath, err = filepath.Abs(config.OutputPath)
+	if err != nil {
+		slog.Error("Error getting absolute path", "error", err)
 		panic(err)
 	}
 

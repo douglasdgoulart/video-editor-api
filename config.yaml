@@ -1,4 +1,5 @@
 log_level: debug
+output_path: ./tmp
 api:
   enabled: true
   host: localhost
