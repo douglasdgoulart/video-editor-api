@@ -1,0 +1,35 @@
+name: code_test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Cache FFmpeg
+      id: cache-ffmpeg
+      uses: actions/cache@v4
+      with:
+        path: bin/ffmpeg/
+        key: ${{ hashFiles('Makefile') }}-ffmpeg-version
+
+    - name: Setup FFmpeg
+      if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+      run: make ffmpeg
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+
+    - name: Build
+      run: make build
+
+    - name: Test
+      run: make test

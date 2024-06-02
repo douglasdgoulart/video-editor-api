@@ -110,7 +110,7 @@ func TestFfmpegEditor_extractThumbnail(t *testing.T) {
 
 		req := request.EditorRequest{
 			Input: request.Input{
-				UploadedFilePath: "/home/douglas/repos/video-editor-api/internal/testdata/testsrc.mp4",
+				UploadedFilePath: "../../internal/testdata/testsrc.mp4",
 			},
 			Output: request.Output{
 				WebhookURL:  "https://webhook-test.com/22eb5ac94c154fe12b2816d2e400122d",
