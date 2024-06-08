@@ -41,6 +41,7 @@ coverage-report:
 # Run linting (requires golangci-lint installed)
 lint:
 	@echo "Linting the code"
+	@go fmt ./...
 	@golangci-lint run
 
 # Download and extract FFmpeg
