@@ -13,7 +13,7 @@ FFMPEG_DIR=bin/ffmpeg
 all: clean ffmpeg build
 
 # Build the binary
-build:
+build: ffmpeg
 	@echo "Building the binary"
 	@go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_FILE)
 
