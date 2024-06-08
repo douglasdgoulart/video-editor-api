@@ -28,7 +28,7 @@ run: build
 	@./$(BUILD_DIR)/$(BINARY_NAME)
 
 # Run tests
-test:
+test: ffmpeg
 	@echo "Running tests"
 	@go test -v -p 1 ./...
 
