@@ -3,16 +3,6 @@ repos:
   rev: master
   hooks:
     - id: go-fmt
--   repo: local
-    hooks:
-    - id: add-files
-      name: Add files
-      description: Add files to the repository
-      language: system
-      entry: git add -u
-- repo: https://github.com/dnephin/pre-commit-golang
-  rev: master
-  hooks:
     - id: go-mod-tidy
     - id: golangci-lint
     - id: go-unit-tests

@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,9 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"os/signal"
 	"strings"
-	"time"
 
 	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
 	"github.com/douglasdgoulart/video-editor-api/pkg/event"
@@ -24,12 +21,11 @@ import (
 )
 
 type ApiInterface interface {
-	Run(ctx context.Context)
+	GetHandler() http.Handler
 }
 
 type Api struct {
 	e          *echo.Echo
-	port       string
 	logger     *slog.Logger
 	emitter    emitter.EventEmitter
 	outputPath string
@@ -50,7 +46,6 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 	logger := cfg.Logger.WithGroup("api")
 	api := &Api{
 		e:          e,
-		port:       cfg.Api.Port,
 		logger:     logger,
 		emitter:    eventEmitter,
 		outputPath: cfg.OutputPath,
@@ -62,6 +57,10 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 	api.registerStaticFiles()
 
 	return api
+}
+
+func (a *Api) GetHandler() http.Handler {
+	return a.e
 }
 
 func (a *Api) registerStaticFiles() {
@@ -135,26 +134,4 @@ func (a *Api) downloadFile(f *multipart.FileHeader) (string, error) {
 	}
 
 	return dst.Name(), nil
-}
-
-func (a Api) Run(parentCtx context.Context) {
-	ctx, stop := signal.NotifyContext(parentCtx, os.Interrupt)
-	defer stop()
-	// Start server
-	go func() {
-		if err := a.e.Start(a.port); err != nil && err != http.ErrServerClosed {
-			a.logger.Error("shutting down the server", "error", err)
-			panic(err)
-		}
-	}()
-
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
-	<-ctx.Done()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := a.e.Shutdown(ctx); err != nil {
-		a.logger.Error("shutting down the server", "error", err)
-		panic(err)
-	}
-	a.e.Logger.Fatal(a.e.Start(a.port))
 }

@@ -1,6 +1,6 @@
 module github.com/douglasdgoulart/video-editor-api
 
-go 1.22.0
+go 1.22.3
 
 require (
 	github.com/google/uuid v1.4.0
