@@ -1,21 +1,11 @@
 package api
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
 	"log/slog"
-	"mime/multipart"
 	"net/http"
-	"os"
-	"strings"
 
+	"github.com/douglasdgoulart/video-editor-api/pkg/api/internal/handler"
 	"github.com/douglasdgoulart/video-editor-api/pkg/configuration"
-	"github.com/douglasdgoulart/video-editor-api/pkg/event"
-	"github.com/douglasdgoulart/video-editor-api/pkg/event/emitter"
-	"github.com/douglasdgoulart/video-editor-api/pkg/request"
-	"github.com/douglasdgoulart/video-editor-api/pkg/validator"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	slogecho "github.com/samber/slog-echo"
 )
@@ -27,111 +17,30 @@ type ApiInterface interface {
 type Api struct {
 	e          *echo.Echo
 	logger     *slog.Logger
-	emitter    emitter.EventEmitter
 	outputPath string
-	inputPath  string
 }
 
 func NewApi(cfg *configuration.Configuration) ApiInterface {
 	e := echo.New()
 	e.Use(slogecho.New(cfg.Logger))
 
-	var eventEmitter emitter.EventEmitter
-	if cfg.Kafka.Enabled {
-		eventEmitter = emitter.NewKafkaEmitter(&cfg.Kafka.KafkaProducerConfig)
-	} else {
-		eventEmitter = emitter.NewInternalQueueEmitter(cfg)
-	}
-
 	logger := cfg.Logger.WithGroup("api")
 	api := &Api{
 		e:          e,
 		logger:     logger,
-		emitter:    eventEmitter,
 		outputPath: cfg.OutputPath,
-		inputPath:  cfg.InputPath,
 	}
 
-	api.registerHealthCheckRoute()
-	api.registerProcessRoute()
-	api.registerStaticFiles()
+	processHandler := handler.NewProcessHandler(cfg)
+	healthHandler := handler.NewHealthHandler()
+
+	api.e.GET("/health", healthHandler.Handler)
+	api.e.POST("/process", processHandler.Handler)
+	api.e.Static("/files", api.outputPath)
 
 	return api
 }
 
 func (a *Api) GetHandler() http.Handler {
 	return a.e
-}
-
-func (a *Api) registerStaticFiles() {
-	a.e.Static("/files", a.outputPath)
-}
-
-func (a *Api) registerHealthCheckRoute() {
-	a.e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "OK")
-	})
-}
-
-func (a *Api) registerProcessRoute() {
-	a.e.POST("/process", func(c echo.Context) error {
-		var request request.EditorRequest
-		eventJson := c.FormValue("event")
-		err := json.Unmarshal([]byte(eventJson), &request)
-		if err != nil {
-			a.logger.Error("Failed to decode request", "error", err)
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-		}
-
-		err = validator.ValidateRequiredFields(request)
-		if err != nil {
-			a.logger.Error("Failed to validate request", "error", err)
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
-		}
-
-		file, err := c.FormFile("file")
-		if err != nil {
-			a.logger.Error("Failed to get file from request", "error", err)
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
-		}
-		fileLocation, err := a.downloadFile(file)
-		if err != nil {
-			a.logger.Error("Failed to download file", "error", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal server error"})
-		}
-		request.Input.UploadedFilePath = fileLocation
-
-		eventId := uuid.New().String()
-		err = a.emitter.Send(c.Request().Context(), event.Event{
-			Id:            eventId,
-			EditorRequest: request,
-		})
-		if err != nil {
-			a.logger.Error("Failed to send event", "error", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "internal server error"})
-		}
-
-		return c.JSON(http.StatusOK, map[string]string{"message": "processing request", "id": eventId})
-	})
-}
-
-func (a *Api) downloadFile(f *multipart.FileHeader) (string, error) {
-	src, err := f.Open()
-	if err != nil {
-		return "", err
-	}
-	defer src.Close()
-
-	fileExtention := f.Filename[strings.LastIndex(f.Filename, ".")+1:]
-	dst, err := os.Create(fmt.Sprintf("%s/%s.%s", a.inputPath, uuid.New().String(), fileExtention))
-	if err != nil {
-		return "", err
-	}
-	defer dst.Close()
-
-	if _, err = io.Copy(dst, src); err != nil {
-		return "", err
-	}
-
-	return dst.Name(), nil
 }
