@@ -36,4 +36,8 @@ TODO.md
 ffmpeg.tar.xz
 ffmpeg.tar.xz.md5
 
+### Helm ###
+# Chart dependencies
+**/charts/*.tgz
+
 # End of https://www.toptal.com/developers/gitignore/api/go

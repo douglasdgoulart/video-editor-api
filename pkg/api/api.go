@@ -22,7 +22,12 @@ type Api struct {
 
 func NewApi(cfg *configuration.Configuration) ApiInterface {
 	e := echo.New()
-	e.Use(slogecho.New(cfg.Logger))
+	e.Use(slogecho.NewWithFilters(cfg.Logger, func(ctx echo.Context) bool {
+		if ctx.Request().URL.Path == "/health" || ctx.Request().URL.Path == "/ready" {
+			return false
+		}
+		return true
+	}))
 
 	logger := cfg.Logger.WithGroup("api")
 	api := &Api{
@@ -32,11 +37,14 @@ func NewApi(cfg *configuration.Configuration) ApiInterface {
 	}
 
 	processHandler := handler.NewProcessHandler(cfg)
-	healthHandler := handler.NewHealthHandler()
+	healthHandler := handler.NewHealthHandler(cfg)
 
-	api.e.GET("/health", healthHandler.Handler)
-	api.e.POST("/process", processHandler.Handler)
-	api.e.Static("/files", api.outputPath)
+	api.e.GET("/health", healthHandler.HealthHandler)
+	api.e.GET("/ready", healthHandler.ReadyHandler)
+	if cfg.Api.Enabled {
+		api.e.POST("/process", processHandler.Handler)
+		api.e.Static("/files", api.outputPath)
+	}
 
 	return api
 }

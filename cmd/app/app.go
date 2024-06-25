@@ -17,14 +17,12 @@ func main() {
 	cfg := configuration.NewConfiguration()
 
 	wg := sync.WaitGroup{}
-	if cfg.Api.Enabled {
-		wg.Add(1)
-		cfg.Logger.Info("Starting API server")
-		go func() {
-			defer wg.Done()
-			api.NewServer(cfg).Run(ctx)
-		}()
-	}
+	wg.Add(1)
+	cfg.Logger.Info("Starting API server")
+	go func() {
+		defer wg.Done()
+		api.NewServer(cfg).Run(ctx)
+	}()
 
 	if cfg.Job.Enabled {
 		for jobId := range cfg.Job.Workers {
