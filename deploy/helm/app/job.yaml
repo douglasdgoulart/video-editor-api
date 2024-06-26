@@ -1,0 +1,26 @@
+namespace: default
+applicationName: video-editor-job
+
+image: douglasdgoulart/video-editor-api:latest
+
+replicas: 1
+
+serviceEnabled: false
+
+probePort: 8080
+
+cpuRequest: 1000m
+cpuLimit: 2000m
+
+memoryRequest: 1000Mi
+memoryLimit: 1500Mi
+
+environmentVariables:
+  LOG_LEVEL: debug
+  OUTPUT_PATH: /mnt/app/output
+  INPUT_PATH: /mnt/app/input
+  API_ENABLED: false
+  JOB_ENABLED: true
+  KAFKA_ENABLED: true
+  API_PORT: :8080
+  KAFKA_CONSUMER_BROKERS: "kafka.kafka.svc.cluster.local:9092"

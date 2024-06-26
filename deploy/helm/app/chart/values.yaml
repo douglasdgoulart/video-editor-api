@@ -1,0 +1,24 @@
+namespace: default
+applicationName: video-editor
+
+image: douglasdgoulart/video-editor-api:latest
+
+replicas: 1
+
+serviceEnabled: false
+
+probePort: 8080
+startupProbePath: /health
+livenessProbePath: /health
+readinessProbePath: /ready
+
+cpuRequest: 500m
+cpuLimit: 1000m
+
+memoryRequest: 200Mi
+memoryLimit: 400Mi
+
+pvName: video-editor
+
+environmentVariables:
+  LOG_LEVEL: debug

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.applicationName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.applicationName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.applicationName }}
+    spec:
+      containers:
+      - name: {{ .Values.applicationName }}
+        image: {{ .Values.image }}
+        ports:
+          - containerPort: {{ .Values.probePort }}
+        resources:
+          requests:
+            cpu: {{ .Values.cpuRequest }}
+            memory: {{ .Values.memoryRequest }}
+          limits:
+            cpu: {{ .Values.cpuLimit }}
+            memory: {{ .Values.memoryLimit }}
+        {{- if .Values.startupProbePath }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.startupProbePath }}
+            port: {{ .Values.probePort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 30
+        {{- end }}
+        {{- if .Values.livenessProbePath }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.livenessProbePath }}
+            port: {{ .Values.probePort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        {{- end }}
+        {{- if .Values.readinessProbePath }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.readinessProbePath }}
+            port: {{ .Values.probePort }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        {{- end }}
+        env:
+          {{- include "envvars" . | nindent 12 }}
+        volumeMounts:
+        - mountPath: /mnt/app
+          name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ .Values.applicationName }}-pvc

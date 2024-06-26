@@ -1,0 +1,24 @@
+namespace: default
+applicationName: video-editor-api
+
+image: douglasdgoulart/video-editor-api:latest
+
+probePort: 8080
+
+serviceEnabled: true
+
+cpuRequest: 1000m
+cpuLimit: 2000m
+
+memoryRequest: 1000Mi
+memoryLimit: 1500Mi
+
+environmentVariables:
+  LOG_LEVEL: debug
+  OUTPUT_PATH: /mnt/app/output
+  INPUT_PATH: /mnt/app/input
+  API_ENABLED: true
+  JOB_ENABLED: false
+  KAFKA_ENABLED: true
+  API_PORT: :8080
+  KAFKA_PRODUCER_BROKERS: "kafka.kafka.svc.cluster.local:9092"

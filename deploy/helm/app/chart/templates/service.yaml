@@ -1,0 +1,15 @@
+{{- if .Values.serviceEnabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.applicationName }}-service
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.applicationName }}
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: {{ .Values.probePort }}
+{{- end }}
