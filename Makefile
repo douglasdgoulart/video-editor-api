@@ -79,6 +79,11 @@ install-kafka:
 		kafka-topics.sh --create --if-not-exists --bootstrap-server kafka.kafka.svc.cluster.local:9092 \
 		--replication-factor 3 --partitions 100 --topic event
 
+create-topic:
+	@kubectl run kafka-create-topic --rm -i --tty --namespace $(KAKFA_NAMESPACE) --image=bitnami/kafka:latest -- \
+		kafka-topics.sh --create --if-not-exists --bootstrap-server kafka.kafka.svc.cluster.local:9092 \
+		--replication-factor 3 --partitions 100 --topic event
+
 uninstall-kafka:
 	@helm uninstall kafka --namespace kafka
 

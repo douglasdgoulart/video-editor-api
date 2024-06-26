@@ -15,6 +15,11 @@ cpuLimit: 2000m
 memoryRequest: 1000Mi
 memoryLimit: 1500Mi
 
+hpa:
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+
 environmentVariables:
   LOG_LEVEL: debug
   OUTPUT_PATH: /mnt/app/output

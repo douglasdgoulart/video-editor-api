@@ -18,6 +18,11 @@ cpuLimit: 1000m
 memoryRequest: 200Mi
 memoryLimit: 400Mi
 
+hpa:
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 70
+
 pvName: video-editor
 
 environmentVariables:
